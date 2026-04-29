@@ -314,7 +314,7 @@ export default function Portfolio() {
             <div className="w-full md:w-1/2 min-h-[50vh] md:h-auto relative bg-zinc-900 overflow-hidden shrink-0 z-10">
               <FadeIn delay={600} className="absolute inset-0 w-full h-full">
                 <img
-                  src="P1011960.jpg"
+                  src={`${import.meta.env.BASE_URL}P1011960.JPG`}
                   alt="Portrait of Tharit Pongsaneh"
                   className="w-full h-full object-cover grayscale opacity-80 hover:grayscale-0 hover:opacity-100 transition-all duration-[2s] ease-out scale-105 hover:scale-100"
                   onError={(e) => {
