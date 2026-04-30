@@ -13,7 +13,12 @@ import {
   PlayCircle,
   BarChart2,
   Briefcase,
-  Tv
+  Tv,
+  Database,
+  Gauge,
+  Award,
+  Bot,
+  Code2
 } from 'lucide-react';
 
 // --- SPLASH SCREEN COMPONENT ---
@@ -101,6 +106,36 @@ const PORTFOLIO_DATA = {
       category: "ANDROID TV PLATFORM",
       description: "Developed core modules including analytics, ads, monitoring, and OTA updates for Thailand's first certified Android TV box.",
       icon: <Tv />
+    },
+    {
+      title: "REAL-TIME DATA PIPELINE",
+      category: "DATA INFRASTRUCTURE",
+      description: "Fault-tolerant event pipeline processing 68B+ events with support for concurrent live events and long-tail VOD workloads.",
+      icon: <Database />
+    },
+    {
+      title: "QOS MONITORING",
+      category: "OBSERVABILITY PLATFORM",
+      description: "Integrated Lighthouse with Grafana — health checks, anomaly detection, and automated Slack alerts enabling near-real-time issue resolution within a 24-hour SLA.",
+      icon: <Gauge />
+    },
+    {
+      title: "ISO 29110 QMS",
+      category: "QUALITY MANAGEMENT",
+      description: "Led ISO/IEC 29110-compliant Quality Management System deployment end-to-end, securing certification for the organization.",
+      icon: <Award />
+    },
+    {
+      title: "AI AGENTIC CHATBOT",
+      category: "AI / LLM PRODUCT",
+      description: "Set roadmap and led delivery of LLM-powered analytics assistant — natural-language queries, auto-generated visualizations, and multi-turn conversations over live data.",
+      icon: <Bot />
+    },
+    {
+      title: "MULTIPLATFORM SDK",
+      category: "DEVELOPER TOOLING",
+      description: "Owned Kotlin Multiplatform SDK (Android/iOS/Flutter) and TypeScript SDK (React, Vue, Angular, JW Player, Video.js) for ByteArk's video and analytics stack.",
+      icon: <Code2 />
     }
   ],
   experience: [
@@ -124,7 +159,12 @@ const PORTFOLIO_DATA = {
       highlights: [
         "ByteArk Video Player: Owned player powering 900M+ playbacks across VOD/Live, DRM, and Casting.",
         "Lighthouse Analytics BI: Delivered real-time insights processing 68B+ events using customized Apache Superset.",
-        "Allianz Enterprise: Delivered Sales Dashboard and Agent Portal with real-time KPIs."
+        "Allianz Enterprise: Delivered Sales Dashboard and Agent Portal with real-time KPIs.",
+        "Real-time Data Pipeline: Fault-tolerant pipeline processing 68B+ events with support for concurrent live events and long-tail VOD.",
+        "QoS Monitoring: Integrated Lighthouse with Grafana — health checks, anomaly detection, Slack alerts, 24hr SLA.",
+        "ISO 29110: Led ISO/IEC 29110-compliant QMS deployment and secured certification for the organization.",
+        "AI Agentic Chatbot: Set roadmap for LLM-powered analytics — natural-language queries, auto-generated visualizations, multi-turn conversations.",
+        "Multiplatform SDK: Owned Kotlin Multiplatform (Android/iOS/Flutter) and TypeScript SDK (React, Vue, Angular, JW Player, Video.js)."
       ]
     },
     {
@@ -312,17 +352,15 @@ export default function Portfolio() {
 
             {/* Right: Image */}
             <div className="w-full md:w-1/2 min-h-[50vh] md:h-auto relative bg-zinc-900 overflow-hidden shrink-0 z-10">
-              <FadeIn delay={600} className="absolute inset-0 w-full h-full">
-                <img
-                  src={`${import.meta.env.BASE_URL}P1011960.JPG`}
-                  alt="Portrait of Tharit Pongsaneh"
-                  className="w-full h-full object-cover grayscale opacity-80 hover:grayscale-0 hover:opacity-100 transition-all duration-[2s] ease-out scale-105 hover:scale-100"
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = "https://images.unsplash.com/photo-1551434678-e076c223a692?q=80&w=2070&auto=format&fit=crop";
-                  }}
-                />
-              </FadeIn>
+              <img
+                src={`${import.meta.env.BASE_URL}P1011960.JPG`}
+                alt="Portrait of Tharit Pongsaneh"
+                className="absolute inset-0 w-full h-full object-cover"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = "https://images.unsplash.com/photo-1551434678-e076c223a692?q=80&w=2070&auto=format&fit=crop";
+                }}
+              />
 
               <div className="absolute inset-0 border-x border-white/5 pointer-events-none w-1/2 left-1/4"></div>
               <div className="absolute inset-0 border-y border-white/5 pointer-events-none h-1/2 top-1/4"></div>
