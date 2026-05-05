@@ -67,6 +67,25 @@ Owned end-to-end delivery across engineering, design, compliance, legal, QA, and
 
 ---
 
+## Notable Clients
+
+* TRUE Digital Group
+* Allianz Ayudhya Insurance (AAGI)
+* Yangyuen
+* Thai PBS
+* PPTV
+* Learn Corp.
+* ByteArk
+* Bitkub Blockchain Technology
+* BECI (CH3 Plus)
+
+---
+
+## Languages
+Thai (Native) · English (Professional Working)
+
+---
+
 ## Education
 **Kasetsart University** — B.Eng. Software & Knowledge Engineering (International Program)
 Graduated 2020 · Second Class Honors · GPA 3.37

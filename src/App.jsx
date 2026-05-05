@@ -188,6 +188,17 @@ const PORTFOLIO_DATA = {
     { category: "DATA & ANALYTICS", items: ["SQL", "ClickHouse", "PostgreSQL", "Grafana", "Superset", "Looker Studio"] },
     { category: "ENGINEERING", items: ["Python", "TypeScript", "Kotlin", "Flutter", "Git", "System Architecture"] }
   ],
+  clients: [
+    { name: "TRUE Digital Group", logo: "logos/tdg.png", tag: "ANDROID TV" },
+    { name: "Bitkub Blockchain Technology", logo: "logos/bbt.jpg", tag: "BLOCKCHAIN" },
+    { name: "ByteArk", logo: "logos/byteark.webp", tag: "VIDEO INFRA" },
+    { name: "Allianz Ayudhya Insurance", logo: "logos/aagi.png", tag: "ENTERPRISE" },
+    { name: "Yangyuen", logo: "logos/yangyuen.svg", tag: "WELLNESS DAPP" },
+    { name: "Thai PBS", logo: "logos/thaipbs.png", tag: "BROADCASTING" },
+    { name: "PPTV", logo: "logos/pptv.png", tag: "BROADCASTING" },
+    { name: "Learn Corp.", logo: "logos/learn.png", tag: "E-LEARNING" },
+    { name: "BECI (CH3 Plus)", logo: "logos/ch3plus.png", tag: "MEDIA" }
+  ],
   education: {
     university: "KASETSART UNIVERSITY",
     degree: "B.ENG. SOFTWARE & KNOWLEDGE ENGINEERING",
@@ -274,7 +285,12 @@ const FadeIn = ({ children, delay = 0, className = "" }) => {
 
 export default function Portfolio() {
   const [currentProject, setCurrentProject] = useState(0);
+  const [clientPage, setClientPage] = useState(0);
   const [splashPhase, setSplashPhase] = useState(0);
+  const clientPages = [];
+  for (let i = 0; i < PORTFOLIO_DATA.clients.length; i += 3) {
+    clientPages.push(PORTFOLIO_DATA.clients.slice(i, i + 3));
+  }
 
   useEffect(() => {
     const t1 = setTimeout(() => setSplashPhase(1), 200);
@@ -286,6 +302,22 @@ export default function Portfolio() {
 
   const nextProject = () => setCurrentProject((prev) => (prev + 1) % PORTFOLIO_DATA.projects.length);
   const prevProject = () => setCurrentProject((prev) => (prev - 1 + PORTFOLIO_DATA.projects.length) % PORTFOLIO_DATA.projects.length);
+  const nextClientPage = () => setClientPage((prev) => (prev + 1) % clientPages.length);
+  const prevClientPage = () => setClientPage((prev) => (prev - 1 + clientPages.length) % clientPages.length);
+  const [clientAutoPlay, setClientAutoPlay] = useState(true);
+  const [clientHovered, setClientHovered] = useState(false);
+  const clientIsPlaying = clientAutoPlay && !clientHovered;
+  const touchStartX = useRef(null);
+  useEffect(() => {
+    if (!clientIsPlaying) return;
+    const timer = setInterval(() => setClientPage((prev) => (prev + 1) % clientPages.length), 3000);
+    return () => clearInterval(timer);
+  }, [clientIsPlaying, clientPages.length]);
+  const manualClientNav = (navFn) => {
+    navFn();
+    setClientAutoPlay(false);
+    setTimeout(() => setClientAutoPlay(true), 3500);
+  };
 
   return (
     <div className="min-h-screen bg-[#050505] text-white font-sans selection:bg-white selection:text-black overflow-x-hidden">
@@ -395,6 +427,68 @@ export default function Portfolio() {
                 ))}
               </div>
             </div>
+          </section>
+
+          {/* NOTABLE CLIENTS */}
+          <section className="border-b border-white/10">
+            <div className="grid grid-cols-1 md:grid-cols-12 border-b border-white/10">
+              <div className="md:col-span-4 p-6 md:p-12 lg:p-20 border-b md:border-b-0 md:border-r border-white/10 flex items-center">
+                <RevealText>
+                  <h2 className="text-xs tracking-[0.2em] text-white/50 uppercase">Notable Clients</h2>
+                </RevealText>
+              </div>
+              <div className="md:col-span-8 flex justify-end items-center p-6 md:p-12 lg:px-20">
+                <div className="flex gap-4">
+                  <FadeIn delay={200}>
+                    <button onClick={() => manualClientNav(prevClientPage)} className="p-4 border border-white/20 hover:bg-white hover:text-black transition-colors duration-300">
+                      <ArrowLeft className="w-5 h-5" />
+                    </button>
+                  </FadeIn>
+                  <FadeIn delay={300}>
+                    <button onClick={() => manualClientNav(nextClientPage)} className="p-4 border border-white/20 hover:bg-white hover:text-black transition-colors duration-300">
+                      <ArrowRight className="w-5 h-5" />
+                    </button>
+                  </FadeIn>
+                </div>
+              </div>
+            </div>
+
+            {/* Slide container: hover pause + touch swipe */}
+            <div
+              className="relative w-full overflow-hidden"
+              onMouseEnter={() => setClientHovered(true)}
+              onMouseLeave={() => setClientHovered(false)}
+              onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX; }}
+              onTouchEnd={(e) => {
+                if (touchStartX.current === null) return;
+                const delta = e.changedTouches[0].clientX - touchStartX.current;
+                if (Math.abs(delta) > 50) delta < 0 ? manualClientNav(nextClientPage) : manualClientNav(prevClientPage);
+                touchStartX.current = null;
+              }}
+            >
+              <div
+                className="flex transition-transform duration-[1.2s] ease-[cubic-bezier(0.16,1,0.3,1)]"
+                style={{ transform: `translateX(-${clientPage * 100}%)` }}
+              >
+                {clientPages.map((pageClients, pageIdx) => (
+                  <div key={pageIdx} className="w-full shrink-0 flex-none grid grid-cols-3">
+                    {pageClients.map((client, idx) => (
+                      <div key={idx} className="group relative flex flex-col items-center justify-center p-8 md:p-12 lg:p-16 border-r border-white/10 last:border-r-0 hover:bg-white/[0.02] transition-colors duration-500 min-h-[200px]">
+                        <img
+                          src={`${import.meta.env.BASE_URL}${client.logo}`}
+                          alt={client.name}
+                          className="max-h-12 max-w-[120px] w-auto object-contain mb-4"
+                        />
+                        <span className="text-[10px] text-white/50 text-center leading-tight mb-2">{client.name}</span>
+                        <span className="text-[7px] tracking-[0.18em] font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500">{client.tag}</span>
+                        <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-amber-400 to-orange-500 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out origin-center" />
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
+
           </section>
 
           {/* PROJECT CAROUSEL */}
