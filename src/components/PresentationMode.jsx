@@ -4,30 +4,13 @@ import { PORTFOLIO_DATA } from '../data.js';
 
 const BASE = import.meta.env.BASE_URL;
 
-// ─── Shared primitives ────────────────────────────────────────────────────────
-
-const GradientText = ({ text }) => {
-  const parts = text.split(/(\*\*.*?\*\*)/g);
-  return (
-    <span>
-      {parts.map((part, i) =>
-        part.startsWith('**') && part.endsWith('**')
-          ? <span key={i} className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-orange-500 to-red-500">{part.slice(2, -2)}</span>
-          : part
-      )}
-    </span>
-  );
-};
-
-// ─── Slide registry ───────────────────────────────────────────────────────────
+// ─── Slide registry: Intro → Experience → Clients → Works → Contact ──────────
 
 const SLIDES = [
   { id: 'intro',      label: 'INTRO' },
-  { id: 'summary',    label: 'SUMMARY' },
+  { id: 'experience', label: 'EXPERIENCE' },
   { id: 'clients',    label: 'CLIENTS' },
   { id: 'works',      label: 'WORKS' },
-  { id: 'experience', label: 'EXPERIENCE' },
-  { id: 'skills',     label: 'SKILLS' },
   { id: 'contact',    label: 'CONTACT' },
 ];
 
@@ -68,23 +51,42 @@ const SlideIntro = () => (
   </div>
 );
 
-// ─── Slide 2: Summary & Metrics ───────────────────────────────────────────────
+// ─── Slide 2: Experience — compact 2×2 grid, fits in one screen ──────────────
 
-const SlideSummary = () => (
-  <div className="w-full h-full flex flex-col md:flex-row">
-    <div className="w-full md:w-7/12 flex items-center p-8 md:p-16 lg:p-24 border-b md:border-b-0 md:border-r border-white/10">
-      <p className="text-xl md:text-2xl lg:text-3xl font-light leading-relaxed tracking-tight">
-        <GradientText text={PORTFOLIO_DATA.personal.summary} />
-      </p>
-    </div>
-    <div className="w-full md:w-5/12 grid grid-cols-2">
-      {PORTFOLIO_DATA.metrics.map((m, i) => (
+const SlideExperience = () => (
+  <div className="w-full h-full flex flex-col p-6 md:p-10 lg:p-14">
+    <h2 className="text-[9px] tracking-[0.3em] text-white/40 uppercase mb-4 shrink-0">Selected Experience</h2>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 flex-1 min-h-0">
+      {PORTFOLIO_DATA.experience.map((job, i) => (
         <div
           key={i}
-          className={`flex flex-col justify-center p-8 md:p-10 border-white/10 hover:bg-white/[0.02] transition-colors duration-500 ${i % 2 === 0 ? 'border-r' : ''} ${i < 2 ? 'border-b' : ''}`}
+          className="group border border-white/10 p-5 flex flex-col hover:border-orange-500/30 hover:bg-white/[0.02] transition-all duration-300 overflow-hidden relative"
         >
-          <div className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tighter mb-2 text-transparent bg-clip-text bg-gradient-to-br from-amber-400 to-orange-500">{m.value}</div>
-          <div className="text-[9px] tracking-widest text-white/40 uppercase">{m.label}</div>
+          {/* Left accent bar on hover */}
+          <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-gradient-to-b from-amber-400 to-orange-500 scale-y-0 group-hover:scale-y-100 transition-transform duration-500 origin-top" />
+
+          <div className="flex items-start justify-between mb-2 gap-3">
+            <div className="min-w-0">
+              <h3 className="text-xs md:text-sm font-bold tracking-tight uppercase leading-snug group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-orange-400 group-hover:to-red-500 transition-all duration-300">
+                {job.role}
+              </h3>
+              <p className="text-[10px] tracking-widest text-white/50 mt-0.5">{job.company}</p>
+            </div>
+            <span className="text-[9px] tracking-widest text-white/30 shrink-0 mt-0.5">{job.period}</span>
+          </div>
+
+          <p className="text-[11px] text-white/55 leading-relaxed mb-3 line-clamp-2">{job.description}</p>
+
+          {job.highlights.length > 0 && (
+            <div className="flex flex-col gap-1 mt-auto">
+              {job.highlights.slice(0, 3).map((h, j) => (
+                <div key={j} className="flex items-start gap-1.5 text-[10px] text-white/40">
+                  <span className="w-1 h-1 bg-gradient-to-r from-amber-400 to-orange-500 mt-1 rounded-full shrink-0 shadow-[0_0_4px_rgba(245,158,11,0.4)]" />
+                  <span className="line-clamp-1 leading-relaxed">{h}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       ))}
     </div>
@@ -116,17 +118,25 @@ const SlideClients = () => (
   </div>
 );
 
-// ─── Slide 4: Works (inner carousel — fixed transform formula) ────────────────
+// ─── Slide 4: Works — 3 items per page ───────────────────────────────────────
+
+const ITEMS_PER_PAGE = 3;
 
 const SlideWorks = () => {
-  const [current, setCurrent] = useState(0);
-  const total = PORTFOLIO_DATA.projects.length;
+  const [page, setPage] = useState(0);
   const touchStartX = useRef(null);
   const wheelLocked = useRef(false);
   const innerRef = useRef(null);
 
-  const next = useCallback(() => setCurrent(p => (p + 1) % total), [total]);
-  const prev = useCallback(() => setCurrent(p => (p - 1 + total) % total), [total]);
+  // Chunk all projects into pages of 3
+  const pages = [];
+  for (let i = 0; i < PORTFOLIO_DATA.projects.length; i += ITEMS_PER_PAGE) {
+    pages.push(PORTFOLIO_DATA.projects.slice(i, i + ITEMS_PER_PAGE));
+  }
+  const totalPages = pages.length;
+
+  const next = useCallback(() => setPage(p => (p + 1) % totalPages), [totalPages]);
+  const prev = useCallback(() => setPage(p => (p - 1 + totalPages) % totalPages), [totalPages]);
 
   const onTouchStart = (e) => { touchStartX.current = e.touches[0].clientX; };
   const onTouchEnd = (e) => {
@@ -136,7 +146,7 @@ const SlideWorks = () => {
     touchStartX.current = null;
   };
 
-  // Wheel navigates inner carousel; stop propagation so outer shell doesn't advance
+  // Inner wheel pages through works; stop propagation so outer shell doesn't advance
   useEffect(() => {
     const el = innerRef.current;
     if (!el) return;
@@ -157,46 +167,91 @@ const SlideWorks = () => {
 
   return (
     <div className="w-full h-full flex flex-col">
-      <div className="flex items-center justify-between px-8 md:px-14 py-5 border-b border-white/10 shrink-0">
+      {/* Header */}
+      <div className="flex items-center justify-between px-8 md:px-14 py-4 border-b border-white/10 shrink-0">
         <h2 className="text-[9px] tracking-[0.3em] text-white/40 uppercase">Selected Works</h2>
         <div className="flex items-center gap-5">
           <span className="text-xs font-mono tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500">
-            {String(current + 1).padStart(2, '0')} / {String(total).padStart(2, '0')}
+            {String(page + 1).padStart(2, '0')} / {String(totalPages).padStart(2, '0')}
           </span>
           <div className="flex gap-2">
-            <button onClick={prev} className="p-2.5 border border-white/20 hover:bg-white hover:text-black transition-colors duration-300"><ArrowLeft className="w-4 h-4" /></button>
-            <button onClick={next} className="p-2.5 border border-white/20 hover:bg-white hover:text-black transition-colors duration-300"><ArrowRight className="w-4 h-4" /></button>
+            <button onClick={prev} className="p-2.5 border border-white/20 hover:bg-white hover:text-black transition-colors duration-300">
+              <ArrowLeft className="w-4 h-4" />
+            </button>
+            <button onClick={next} className="p-2.5 border border-white/20 hover:bg-white hover:text-black transition-colors duration-300">
+              <ArrowRight className="w-4 h-4" />
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Inner carousel — track is w-full so translateX(-100%) = -1 slide width ✓ */}
-      <div ref={innerRef} className="flex-1 overflow-hidden relative" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+      {/* Page track */}
+      <div
+        ref={innerRef}
+        className="flex-1 overflow-hidden relative min-h-0"
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+      >
         <div
           className="flex w-full h-full transition-transform duration-[1.2s] ease-[cubic-bezier(0.16,1,0.3,1)]"
-          style={{ transform: `translateX(-${current * 100}%)` }}
+          style={{ transform: `translateX(-${page * 100}%)` }}
         >
-          {PORTFOLIO_DATA.projects.map((p, i) => (
-            <div key={i} className="w-full h-full shrink-0 flex-none flex flex-col md:flex-row">
-              <div className="w-full md:w-5/12 flex flex-col justify-center p-8 md:p-14 lg:p-20 border-b md:border-b-0 md:border-r border-white/10">
-                <div className="mb-6 p-4 rounded-2xl bg-gradient-to-br from-orange-500/10 to-red-500/10 border border-white/5 w-fit shadow-[0_0_15px_rgba(239,68,68,0.1)]">
-                  {React.cloneElement(p.icon, { className: "w-8 h-8 text-orange-500" })}
-                </div>
-                <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold tracking-tighter uppercase mb-3">{p.title}</h3>
-                <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-500">{p.category}</p>
-              </div>
-              <div className="w-full md:w-7/12 flex items-center p-8 md:p-14 lg:p-20">
-                <p className="text-lg md:text-xl font-light text-white/80 leading-relaxed">{p.description}</p>
-              </div>
+          {pages.map((pageItems, pageIdx) => (
+            <div key={pageIdx} className="w-full h-full shrink-0 flex-none flex flex-col md:flex-row gap-px bg-white/10">
+              {pageItems.map((project, idx) => {
+                const globalIdx = pageIdx * ITEMS_PER_PAGE + idx;
+                return (
+                  <div
+                    key={idx}
+                    className="group flex-1 bg-[#050505] flex flex-col justify-between p-6 md:p-8 lg:p-10 hover:bg-white/[0.025] transition-colors duration-500 relative overflow-hidden"
+                  >
+                    {/* Bottom accent bar on hover */}
+                    <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-amber-400 to-orange-500 scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
+
+                    <div>
+                      <div className="flex items-start justify-between mb-4">
+                        <span className="text-[8px] tracking-[0.25em] text-white/20 font-mono">
+                          {String(globalIdx + 1).padStart(2, '0')}
+                        </span>
+                        <span className="text-[7px] tracking-[0.2em] font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500">
+                          {project.category}
+                        </span>
+                      </div>
+
+                      <div className="mb-4 p-3 rounded-xl bg-gradient-to-br from-orange-500/10 to-red-500/10 border border-white/5 w-fit shadow-[0_0_12px_rgba(239,68,68,0.08)]">
+                        {React.cloneElement(project.icon, { className: "w-6 h-6 text-orange-500" })}
+                      </div>
+
+                      <h3 className="text-lg md:text-xl lg:text-2xl font-bold tracking-tighter uppercase mb-2 leading-tight group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-orange-400 group-hover:to-red-500 transition-all duration-500">
+                        {project.title}
+                      </h3>
+                    </div>
+
+                    <p className="text-xs md:text-[13px] text-white/55 leading-relaxed">
+                      {project.description}
+                    </p>
+                  </div>
+                );
+              })}
+
+              {/* Filler slots when the last page has fewer than 3 items */}
+              {pageItems.length < ITEMS_PER_PAGE &&
+                Array.from({ length: ITEMS_PER_PAGE - pageItems.length }).map((_, idx) => (
+                  <div key={`empty-${idx}`} className="flex-1 bg-[#050505]" />
+                ))
+              }
             </div>
           ))}
         </div>
       </div>
 
+      {/* Page dots */}
       <div className="flex justify-center gap-1.5 py-3 border-t border-white/10 shrink-0">
-        {PORTFOLIO_DATA.projects.map((_, i) => (
-          <button key={i} onClick={() => setCurrent(i)}
-            className={`rounded-full transition-all duration-300 ${i === current ? 'w-4 h-1.5 bg-orange-500' : 'w-1.5 h-1.5 bg-white/20 hover:bg-white/40'}`}
+        {pages.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => setPage(i)}
+            className={`rounded-full transition-all duration-300 ${i === page ? 'w-4 h-1.5 bg-orange-500' : 'w-1.5 h-1.5 bg-white/20 hover:bg-white/40'}`}
           />
         ))}
       </div>
@@ -204,79 +259,7 @@ const SlideWorks = () => {
   );
 };
 
-// ─── Slide 5: Experience ──────────────────────────────────────────────────────
-
-const SlideExperience = () => (
-  <div className="w-full h-full flex flex-col p-8 md:p-14 lg:p-20 overflow-y-auto">
-    <h2 className="text-[9px] tracking-[0.3em] text-white/40 uppercase mb-8 shrink-0">Selected Experience</h2>
-    <div className="space-y-8">
-      {PORTFOLIO_DATA.experience.map((job, i) => (
-        <div key={i} className="group border-b border-white/10 last:border-b-0 pb-8 last:pb-0">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-3 gap-2">
-            <div>
-              <h3 className="text-xl md:text-2xl font-bold tracking-tighter uppercase group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-orange-400 group-hover:to-red-500 transition-all duration-500">{job.role}</h3>
-              <p className="text-xs tracking-widest text-white/50 mt-1">{job.company}</p>
-            </div>
-            <span className="text-[10px] tracking-widest text-white/30 shrink-0">{job.period}</span>
-          </div>
-          <p className="text-sm text-white/60 leading-relaxed mb-3">{job.description}</p>
-          {job.highlights.length > 0 && (
-            <div className="grid sm:grid-cols-2 gap-2">
-              {job.highlights.slice(0, 4).map((h, j) => (
-                <div key={j} className="flex items-start gap-2 text-[11px] text-white/40">
-                  <span className="w-1 h-1 bg-gradient-to-r from-amber-400 to-orange-500 mt-1.5 rounded-full shrink-0 shadow-[0_0_6px_rgba(245,158,11,0.5)]" />
-                  <span className="leading-relaxed">{h}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      ))}
-    </div>
-  </div>
-);
-
-// ─── Slide 6: Skills & Education ─────────────────────────────────────────────
-
-const SlideSkills = () => (
-  <div className="w-full h-full flex flex-col md:flex-row">
-    <div className="w-full md:w-1/2 p-8 md:p-14 lg:p-20 border-b md:border-b-0 md:border-r border-white/10 overflow-y-auto">
-      <h2 className="text-[9px] tracking-[0.3em] text-white/40 uppercase mb-8">Expertise</h2>
-      <div className="space-y-7">
-        {PORTFOLIO_DATA.skills.map((group, i) => (
-          <div key={i}>
-            <h3 className="text-[9px] tracking-[0.2em] font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500 uppercase mb-3">{group.category}</h3>
-            <div className="flex flex-wrap gap-2">
-              {group.items.map((item, j) => (
-                <span key={j} className="text-xs tracking-wide text-white/60 px-3 py-1.5 border border-white/10 rounded hover:border-orange-500 hover:text-orange-400 hover:bg-orange-500/5 transition-all duration-300 cursor-default">{item}</span>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-    <div className="w-full md:w-1/2 p-8 md:p-14 lg:p-20 flex flex-col justify-between overflow-y-auto">
-      <div>
-        <h2 className="text-[9px] tracking-[0.3em] text-white/40 uppercase mb-8">Education</h2>
-        <h3 className="text-[9px] tracking-[0.2em] font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500 uppercase mb-4">ACADEMIC BACKGROUND</h3>
-        <div className="text-2xl font-bold tracking-tighter mb-2">{PORTFOLIO_DATA.education.university}</div>
-        <div className="text-sm tracking-widest text-white/60 mb-3">{PORTFOLIO_DATA.education.degree}</div>
-        <div className="text-xs tracking-widest text-white/35">{PORTFOLIO_DATA.education.honors}</div>
-        <div className="text-xs tracking-widest text-white/35 mt-1">CLASS OF {PORTFOLIO_DATA.education.period}</div>
-      </div>
-      <div className="mt-10 flex flex-col gap-3">
-        <a href={`mailto:${PORTFOLIO_DATA.personal.email}`} className="flex items-center justify-between p-4 border border-white/20 hover:bg-gradient-to-r hover:from-amber-500 hover:to-orange-500 hover:border-transparent hover:text-white hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(245,158,11,0.3)] transition-all duration-300 text-xs tracking-widest uppercase font-bold">
-          <span>Email Me</span><ArrowRight className="w-4 h-4" />
-        </a>
-        <a href={PORTFOLIO_DATA.personal.linkedin} target="_blank" rel="noreferrer" className="flex items-center justify-between p-4 border border-white/20 hover:bg-gradient-to-r hover:from-orange-500 hover:to-red-500 hover:border-transparent hover:text-white hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(239,68,68,0.3)] transition-all duration-300 text-xs tracking-widest uppercase font-bold">
-          <span>LinkedIn Profile</span><ExternalLink className="w-4 h-4" />
-        </a>
-      </div>
-    </div>
-  </div>
-);
-
-// ─── Slide 7: Contact ─────────────────────────────────────────────────────────
+// ─── Slide 5: Contact ─────────────────────────────────────────────────────────
 
 const SlideContact = () => (
   <div className="w-full h-full flex flex-col items-center justify-center p-8 md:p-16 text-center relative overflow-hidden">
@@ -289,10 +272,18 @@ const SlideContact = () => (
       <span className="block text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-orange-500 to-red-500">TOUCH</span>
     </h2>
     <div className="flex flex-col sm:flex-row gap-4 relative z-10">
-      <a href={`mailto:${PORTFOLIO_DATA.personal.email}`} className="flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-amber-500 to-orange-500 text-black font-bold text-xs tracking-widest uppercase hover:scale-105 hover:shadow-[0_0_30px_rgba(245,158,11,0.4)] transition-all duration-300">
+      <a
+        href={`mailto:${PORTFOLIO_DATA.personal.email}`}
+        className="flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-amber-500 to-orange-500 text-black font-bold text-xs tracking-widest uppercase hover:scale-105 hover:shadow-[0_0_30px_rgba(245,158,11,0.4)] transition-all duration-300"
+      >
         <Mail className="w-4 h-4" />{PORTFOLIO_DATA.personal.email}
       </a>
-      <a href={PORTFOLIO_DATA.personal.linkedin} target="_blank" rel="noreferrer" className="flex items-center gap-3 px-8 py-4 border border-white/20 font-bold text-xs tracking-widest uppercase hover:bg-white hover:text-black hover:scale-105 transition-all duration-300">
+      <a
+        href={PORTFOLIO_DATA.personal.linkedin}
+        target="_blank"
+        rel="noreferrer"
+        className="flex items-center gap-3 px-8 py-4 border border-white/20 font-bold text-xs tracking-widest uppercase hover:bg-white hover:text-black hover:scale-105 transition-all duration-300"
+      >
         <ExternalLink className="w-4 h-4" />LINKEDIN
       </a>
     </div>
@@ -302,7 +293,9 @@ const SlideContact = () => (
   </div>
 );
 
-const SLIDE_COMPONENTS = [SlideIntro, SlideSummary, SlideClients, SlideWorks, SlideExperience, SlideSkills, SlideContact];
+// ─── Slide components in registry order ──────────────────────────────────────
+
+const SLIDE_COMPONENTS = [SlideIntro, SlideExperience, SlideClients, SlideWorks, SlideContact];
 
 // ─── Shell ────────────────────────────────────────────────────────────────────
 
@@ -366,7 +359,6 @@ export default function PresentationMode({ onExit }) {
       className="hidden md:flex flex-col overflow-hidden"
       style={{ height: 'calc(100vh - 57px)' }}
     >
-      {/* Slide track — w-full so translateX(-N*100%) = N slide-widths ✓ */}
       <div
         className="flex-1 overflow-hidden relative min-h-0"
         onTouchStart={onTouchStart}
@@ -384,7 +376,7 @@ export default function PresentationMode({ onExit }) {
         </div>
       </div>
 
-      {/* Gradient progress fill */}
+      {/* Gradient progress bar */}
       <div className="h-[2px] bg-white/5 shrink-0">
         <div
           className="h-full bg-gradient-to-r from-amber-400 via-orange-500 to-red-500 transition-all duration-[1.2s] ease-[cubic-bezier(0.16,1,0.3,1)]"
@@ -394,15 +386,20 @@ export default function PresentationMode({ onExit }) {
 
       {/* Nav bar */}
       <div className="shrink-0 flex items-center justify-between px-8 py-4 border-t border-white/10 bg-[#050505]">
-        <button onClick={prev} disabled={current === 0}
-          className="flex items-center gap-2 text-[10px] tracking-widest uppercase text-white/40 hover:text-white disabled:opacity-20 disabled:cursor-not-allowed transition-colors duration-300">
+        <button
+          onClick={prev}
+          disabled={current === 0}
+          className="flex items-center gap-2 text-[10px] tracking-widest uppercase text-white/40 hover:text-white disabled:opacity-20 disabled:cursor-not-allowed transition-colors duration-300"
+        >
           <ArrowLeft className="w-4 h-4" /> PREV
         </button>
 
         <div className="flex flex-col items-center gap-2">
           <div className="flex items-center gap-2">
             {SLIDES.map((_, i) => (
-              <button key={i} onClick={() => setCurrent(i)}
+              <button
+                key={i}
+                onClick={() => setCurrent(i)}
                 className={`rounded-full transition-all duration-300 ${i === current ? 'w-5 h-1.5 bg-orange-500' : 'w-1.5 h-1.5 bg-white/20 hover:bg-white/50'}`}
               />
             ))}
@@ -412,8 +409,11 @@ export default function PresentationMode({ onExit }) {
           </div>
         </div>
 
-        <button onClick={next} disabled={current === total - 1}
-          className="flex items-center gap-2 text-[10px] tracking-widest uppercase text-white/40 hover:text-white disabled:opacity-20 disabled:cursor-not-allowed transition-colors duration-300">
+        <button
+          onClick={next}
+          disabled={current === total - 1}
+          className="flex items-center gap-2 text-[10px] tracking-widest uppercase text-white/40 hover:text-white disabled:opacity-20 disabled:cursor-not-allowed transition-colors duration-300"
+        >
           NEXT <ArrowRight className="w-4 h-4" />
         </button>
       </div>
@@ -432,7 +432,6 @@ export default function PresentationMode({ onExit }) {
           className="snap-start overflow-hidden relative border-b border-white/10"
           style={{ height: 'calc(100vh - 57px)' }}
         >
-          {/* Slide label */}
           <div className="absolute top-3 right-4 z-10 pointer-events-none">
             <span className="text-[8px] tracking-[0.3em] text-white/20 font-mono">
               {String(i + 1).padStart(2, '0')} · {SLIDES[i].label}
