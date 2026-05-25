@@ -51,47 +51,72 @@ const SlideIntro = () => (
   </div>
 );
 
-// ─── Slide 2: Experience — compact 2×2 grid, fits in one screen ──────────────
+// ─── Slide 2: Experience + Education — fits in one screen ────────────────────
 
-const SlideExperience = () => (
-  <div className="w-full h-full flex flex-col p-6 md:p-10 lg:p-14">
-    <h2 className="text-[9px] tracking-[0.3em] text-white/40 uppercase mb-4 shrink-0">Selected Experience</h2>
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 flex-1 min-h-0">
-      {PORTFOLIO_DATA.experience.map((job, i) => (
-        <div
-          key={i}
-          className="group border border-white/10 p-5 flex flex-col hover:border-orange-500/30 hover:bg-white/[0.02] transition-all duration-300 overflow-hidden relative"
-        >
-          {/* Left accent bar on hover */}
-          <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-gradient-to-b from-amber-400 to-orange-500 scale-y-0 group-hover:scale-y-100 transition-transform duration-500 origin-top" />
+const SlideExperience = () => {
+  const edu = PORTFOLIO_DATA.education;
+  return (
+    <div className="w-full h-full flex flex-col p-6 md:p-10 lg:p-14">
+      <h2 className="text-[9px] tracking-[0.3em] text-white/40 uppercase mb-3 shrink-0">Selected Experience</h2>
 
-          <div className="flex items-start justify-between mb-2 gap-3">
-            <div className="min-w-0">
-              <h3 className="text-xs md:text-sm font-bold tracking-tight uppercase leading-snug group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-orange-400 group-hover:to-red-500 transition-all duration-300">
-                {job.role}
-              </h3>
-              <p className="text-[10px] tracking-widest text-white/50 mt-0.5">{job.company}</p>
+      {/* Experience grid — flex-1 fills available space */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 flex-1 min-h-0">
+        {PORTFOLIO_DATA.experience.map((job, i) => (
+          <div
+            key={i}
+            className="group border border-white/10 p-5 flex flex-col hover:border-orange-500/30 hover:bg-white/[0.02] transition-all duration-300 overflow-hidden relative"
+          >
+            {/* Left accent bar on hover */}
+            <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-gradient-to-b from-amber-400 to-orange-500 scale-y-0 group-hover:scale-y-100 transition-transform duration-500 origin-top" />
+
+            <div className="flex items-start justify-between mb-2 gap-3">
+              <div className="min-w-0">
+                <h3 className="text-xs md:text-sm font-bold tracking-tight uppercase leading-snug group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-orange-400 group-hover:to-red-500 transition-all duration-300">
+                  {job.role}
+                </h3>
+                <p className="text-[10px] tracking-widest text-white/50 mt-0.5">{job.company}</p>
+              </div>
+              <span className="text-[9px] tracking-widest text-white/30 shrink-0 mt-0.5">{job.period}</span>
             </div>
-            <span className="text-[9px] tracking-widest text-white/30 shrink-0 mt-0.5">{job.period}</span>
+
+            <p className="text-[11px] text-white/55 leading-relaxed mb-3 line-clamp-2">{job.description}</p>
+
+            {job.highlights.length > 0 && (
+              <div className="flex flex-col gap-1 mt-auto">
+                {job.highlights.slice(0, 3).map((h, j) => (
+                  <div key={j} className="flex items-start gap-1.5 text-[10px] text-white/40">
+                    <span className="w-1 h-1 bg-gradient-to-r from-amber-400 to-orange-500 mt-1 rounded-full shrink-0 shadow-[0_0_4px_rgba(245,158,11,0.4)]" />
+                    <span className="line-clamp-1 leading-relaxed">{h}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
+        ))}
+      </div>
 
-          <p className="text-[11px] text-white/55 leading-relaxed mb-3 line-clamp-2">{job.description}</p>
-
-          {job.highlights.length > 0 && (
-            <div className="flex flex-col gap-1 mt-auto">
-              {job.highlights.slice(0, 3).map((h, j) => (
-                <div key={j} className="flex items-start gap-1.5 text-[10px] text-white/40">
-                  <span className="w-1 h-1 bg-gradient-to-r from-amber-400 to-orange-500 mt-1 rounded-full shrink-0 shadow-[0_0_4px_rgba(245,158,11,0.4)]" />
-                  <span className="line-clamp-1 leading-relaxed">{h}</span>
-                </div>
-              ))}
+      {/* Education strip — shrink-0 keeps it fixed below experience */}
+      <div className="shrink-0 mt-3 pt-3 border-t border-white/10">
+        <p className="text-[9px] tracking-[0.3em] text-white/40 uppercase mb-2">Education</p>
+        <div className="group relative border border-white/10 hover:border-orange-500/30 hover:bg-white/[0.02] transition-all duration-300 overflow-hidden">
+          <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-gradient-to-b from-amber-400 to-orange-500 scale-y-0 group-hover:scale-y-100 transition-transform duration-500 origin-top" />
+          <div className="flex items-center justify-between px-5 py-3 gap-4">
+            <div className="min-w-0">
+              <p className="text-xs font-bold tracking-tight uppercase leading-snug group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-orange-400 group-hover:to-red-500 transition-all duration-300">
+                {edu.university}
+              </p>
+              <p className="text-[10px] tracking-widest text-white/50 mt-0.5">{edu.degree}</p>
             </div>
-          )}
+            <div className="text-right shrink-0">
+              <p className="text-[9px] tracking-widest text-white/30">{edu.period}</p>
+              <p className="text-[10px] text-white/50 mt-0.5">{edu.honors}</p>
+            </div>
+          </div>
         </div>
-      ))}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 // ─── Slide 3: Clients ─────────────────────────────────────────────────────────
 
